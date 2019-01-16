@@ -74,11 +74,11 @@ func main() {
   finalPoints, err := strconv.Atoi(tokens[len(tokens)-2])
   check(err)
 
-  fmt.Printf("Simulating game with %d players and final marble %d.\n", numPlayers, finalPoints)
+  fmt.Printf("Simulating game with %d players and final marble %d...\n", numPlayers, finalPoints)
   scores := playMarbleGame(numPlayers, finalPoints)
-  fmt.Println("The winning elf's score is", getMax(scores))
-
-  fmt.Printf("Simulating game with %d players and final marble %d.\n", numPlayers, 100 * finalPoints)
+  fmt.Printf("The winning elf's score is %d.\n", getMax(scores))
+  fmt.Println()
+  fmt.Printf("Simulating game with %d players and final marble %d...\n", numPlayers, 100 * finalPoints)
   scores2 := playMarbleGame(numPlayers, 100 * finalPoints)
-  fmt.Println("IfThe winning elf's score is", getMax(scores2))
+  fmt.Printf("The winning elf's score is %d.\n", getMax(scores2))
 }
