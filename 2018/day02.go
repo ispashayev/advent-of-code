@@ -68,7 +68,7 @@ func getStringPair(identifiers []string) (string, string) {
 
 
 func main() {
-  fd, err := os.Open("day2.dat")
+  fd, err := os.Open("day02.dat")
   check(err)
   ioReader := io.Reader(fd)
   identifiers, err := readIds(ioReader)

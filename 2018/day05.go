@@ -43,7 +43,7 @@ func diffReact(polymer string) map[rune]string {
 }
 
 func main() {
-  sequence, err := ioutil.ReadFile("day5.dat")
+  sequence, err := ioutil.ReadFile("day05.dat")
   check(err)
 
   polymer := string(sequence)[:len(sequence)-1] // remove trailing new line

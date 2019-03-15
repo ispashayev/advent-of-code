@@ -179,7 +179,7 @@ func computeLargestCluster(grid [][]*Coordinate, centroids []Coordinate) {
 }
 
 func main() {
-  fd, err := os.Open("day6.dat")
+  fd, err := os.Open("day06.dat")
   check(err)
 
   documentReader := io.Reader(fd)

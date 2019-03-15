@@ -140,7 +140,7 @@ func getDistinctClaim(claims []*Claim, fabricDistribution map[Coordinate]int) *C
 
 
 func main() {
-  fd, err := os.Open("day3.dat")
+  fd, err := os.Open("day03.dat")
   check(err)
   ioReader := io.Reader(fd)
   claims, err := readDocument(ioReader)

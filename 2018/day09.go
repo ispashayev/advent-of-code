@@ -65,7 +65,7 @@ func playMarbleGame(numPlayers, finalPoints int) map[int]int {
 }
 
 func main() {
-  dat, err := ioutil.ReadFile("day9.dat")
+  dat, err := ioutil.ReadFile("day09.dat")
   check(err)
 
   tokens := strings.Split(string(dat), " ")

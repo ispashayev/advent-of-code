@@ -172,7 +172,7 @@ func main() {
     jobs[jobNames[i]] = &job
   }
 
-  fd, err := os.Open("day7.dat")
+  fd, err := os.Open("day07.dat")
   check(err)
 
   dataReader := io.Reader(fd)

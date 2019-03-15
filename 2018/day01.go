@@ -51,7 +51,7 @@ func FindFirstRepeatedFrequency(numbers []int) (int) {
 }
 
 func main() {
-  fd, err := os.Open("day1.dat")
+  fd, err := os.Open("day01.dat")
   check(err)
   ioReader := io.Reader(fd)
   ints, err := ReadInts(ioReader)

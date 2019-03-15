@@ -77,7 +77,7 @@ func computeValue(stream []int, streamPosition int) (int, int) {
 }
 
 func main() {
-  fd, err := os.Open("day8.dat")
+  fd, err := os.Open("day08.dat")
   check(err)
 
   numReader := io.Reader(fd)

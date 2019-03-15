@@ -170,7 +170,7 @@ func computeStrategyTwo(sleepDistribution map[int][]int) {
 }
 
 func main() {
-  fd, err := os.Open("day4.dat")
+  fd, err := os.Open("day04.dat")
   check(err)
 
   logReader := io.Reader(fd)
