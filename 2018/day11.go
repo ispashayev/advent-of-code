@@ -7,21 +7,6 @@ import (
   "strings"
 )
 
-type FuelGrid interface {
-  PowerLevel(int) int
-}
-
-type FuelCell struct {
-  x int
-  y int
-}
-
-func (cell *FuelCell) PowerLevel(gridSerialNumber int) (powerLevel int) {
-  rackId := cell.x + 10
-  powerLevel = rackId * (rackId * cell.y + gridSerialNumber)
-  powerLevel = ((powerLevel / 100) % 10) - 5
-  return powerLevel
-}
 
 func check(err error) {
   if (err != nil) {
@@ -29,28 +14,37 @@ func check(err error) {
   }
 }
 
-func makeGrid() [][]*FuelCell {
+type FuelCell struct {
+  x int
+  y int
+  powerLevel int
+}
+
+func (cell *FuelCell) SetPowerLevel(gridSerialNumber int) {
+  rackId := cell.x + 10
+  powerLevel := rackId * (rackId * cell.y + gridSerialNumber)
+  powerLevel = ((powerLevel / 100) % 10) - 5
+  cell.powerLevel = powerLevel
+}
+
+func makeGrid(gridSerialNumber int) [][]*FuelCell {
   grid := make([][]*FuelCell, 300)
   for i := 0; i < 300; i++ {
     grid[i] = make([]*FuelCell, 300)
     for j := 0; j < 300; j++ {
-      grid[i][j] = &FuelCell{i,j}
+      cell := &FuelCell{i, j, 0}
+      cell.SetPowerLevel(gridSerialNumber)
+      grid[i][j] = cell
     }
   }
   return grid
 }
 
-func testPowerLevel(cell *FuelCell, gridSerialNumber int, expected int) {
-  fmt.Printf("Testing fuel cell at (%d,%d).", cell.x, cell.y)
-  actual := cell.PowerLevel(gridSerialNumber)
-  pass := expected == actual
-  if pass {
-    fmt.Printf("Pass.\n")
-  } else {
-    fmt.Printf("\nFAIL\n")
-    fmt.Printf("EXPECTED: %d\n", expected)
-    fmt.Printf("ACTUAL: %d\n\n", actual)
-  }
+func getPatchPower(grid [][]*FuelCell, i int, j int) (patchPower int) {
+  patchPower += grid[i-1][j-1].powerLevel + grid[i-1][j].powerLevel + grid[i-1][j+1].powerLevel
+  patchPower += grid[i][j-1].powerLevel + grid[i][j].powerLevel + grid[i][j+1].powerLevel
+  patchPower += grid[i+1][j-1].powerLevel + grid[i+1][j].powerLevel + grid[i+1][j+1].powerLevel
+  return patchPower
 }
 
 func main() {
@@ -60,10 +54,21 @@ func main() {
   gridSerialNumber, err := strconv.Atoi(strings.TrimSpace(string(data)))
   check(err)
 
-  grid := makeGrid()
-  fmt.Println("10,10 powerlevel", grid[10][10].PowerLevel(gridSerialNumber))
+  grid := makeGrid(gridSerialNumber)
 
-  testPowerLevel(grid[122][79], 57, -5)
-  testPowerLevel(grid[217][196], 39, 0)
-  testPowerLevel(grid[101][153], 71, 4)
+  var highestPatchPower int
+  var source *FuelCell
+  for i := 1; i < 299; i++ {
+    for j := 1; j < 299; j++ {
+      current := grid[i][j]
+      currentPatchPower := getPatchPower(grid, i, j)
+      if currentPatchPower > highestPatchPower {
+        highestPatchPower = currentPatchPower
+        source = current
+      }
+    }
+  }
+
+  fmt.Printf("The highest level patch is centered at (%d,%d).\n", source.x, source.y)
+  fmt.Printf("The patch's power level is: %d.\n", highestPatchPower)
 }
