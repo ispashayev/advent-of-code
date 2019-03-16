@@ -27,11 +27,11 @@ func (cell *FuelCell) SetPowerLevel(gridSerialNumber int) {
   cell.powerLevel = powerLevel
 }
 
-func makeGrid(gridSerialNumber int) [][]*FuelCell {
-  grid := make([][]*FuelCell, 300)
-  for i := 0; i < 300; i++ {
-    grid[i] = make([]*FuelCell, 300)
-    for j := 0; j < 300; j++ {
+func makeGrid(gridSize int, gridSerialNumber int) [][]*FuelCell {
+  grid := make([][]*FuelCell, gridSize)
+  for i := 0; i < gridSize; i++ {
+    grid[i] = make([]*FuelCell, gridSize)
+    for j := 0; j < gridSize; j++ {
       cell := &FuelCell{i, j, 0}
       cell.SetPowerLevel(gridSerialNumber)
       grid[i][j] = cell
@@ -40,10 +40,12 @@ func makeGrid(gridSerialNumber int) [][]*FuelCell {
   return grid
 }
 
-func getPatchPower(grid [][]*FuelCell, i int, j int) (patchPower int) {
-  patchPower += grid[i-1][j-1].powerLevel + grid[i-1][j].powerLevel + grid[i-1][j+1].powerLevel
-  patchPower += grid[i][j-1].powerLevel + grid[i][j].powerLevel + grid[i][j+1].powerLevel
-  patchPower += grid[i+1][j-1].powerLevel + grid[i+1][j].powerLevel + grid[i+1][j+1].powerLevel
+func getPatchPower(grid [][]*FuelCell, x int, y int, patchSize int) (patchPower int) {
+  for i := 0; i < patchSize; i++ {
+    for j := 0; j < patchSize; j++ {
+      patchPower += grid[x+i][y+j].powerLevel
+    }
+  }
   return patchPower
 }
 
@@ -54,21 +56,25 @@ func main() {
   gridSerialNumber, err := strconv.Atoi(strings.TrimSpace(string(data)))
   check(err)
 
-  grid := makeGrid(gridSerialNumber)
+  gridSize := 300
+  grid := makeGrid(gridSize, gridSerialNumber)
 
-  var highestPatchPower int
+  var sourcePatchPower, sourcePatchSize int
   var source *FuelCell
-  for i := 1; i < 299; i++ {
-    for j := 1; j < 299; j++ {
-      current := grid[i][j]
-      currentPatchPower := getPatchPower(grid, i, j)
-      if currentPatchPower > highestPatchPower {
-        highestPatchPower = currentPatchPower
-        source = current
+  for patchSize := 1; patchSize <= gridSize; patchSize++ {
+    for i := 0; i <= gridSize - patchSize; i++ {
+      for j := 0; j <= gridSize - patchSize; j++ {
+        currentPatchPower := getPatchPower(grid, i, j, patchSize)
+        if currentPatchPower > sourcePatchPower {
+          source = grid[i][j]
+          sourcePatchPower = currentPatchPower
+          sourcePatchSize = patchSize
+        }
       }
     }
   }
 
-  fmt.Printf("The highest level patch is centered at (%d,%d).\n", source.x, source.y)
-  fmt.Printf("The patch's power level is: %d.\n", highestPatchPower)
+  fmt.Printf("The strongest patch's power level is: %d.\n", sourcePatchPower)
+  fmt.Printf("Its top-left corner is (%d, %d).\n", source.x, source.y)
+  fmt.Printf("The patch size is %d.\n", sourcePatchSize)
 }
