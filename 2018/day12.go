@@ -72,6 +72,15 @@ func step(pots string, origin int, plantPatternRules map[string]byte) (string, i
   return trim(potsNext, origin-3)
 }
 
+func sumPotsWithPlants(pots string, origin int) (pwpSum int) {
+  for i, pot := range pots {
+    if pot == '#' {
+      pwpSum += i + origin
+    }
+  }
+  return pwpSum
+}
+
 func main() {
   fd, err := os.Open("day12.dat")
   check(err)
@@ -79,15 +88,28 @@ func main() {
   dataReader := io.Reader(fd)
   pots, origin, plantPatternRules := readData(dataReader)
 
-  for i := 0; i < 20; i++ {
+  prevPwpSum, prevPwpSumDiff, stablePwpSumCount := 0, 0, 0
+  numGenerations, stabilityThreshold, genDelta := 50000000000, 100, 20
+  for i := 0; i <= numGenerations; i++ {
+    if i % genDelta == 0 {
+      pwpSum := sumPotsWithPlants(pots, origin)
+      if i == genDelta {
+        fmt.Printf("After %d generations, the pots-with-plants sum is: %d.\n", genDelta, pwpSum)
+      }
+      pwpSumDiff := pwpSum - prevPwpSum
+      if pwpSumDiff == prevPwpSumDiff {
+        stablePwpSumCount++
+      }
+      if stablePwpSumCount == stabilityThreshold {
+        fmt.Printf("Stable difference inferred after %d generations: %d.\n", i, pwpSumDiff)
+        projectedPwpSum := pwpSum + ((numGenerations - i) / genDelta) * pwpSumDiff
+        fmt.Printf("After %d generations, the project pot-with-plants sum is: %d.\n", numGenerations, projectedPwpSum)
+        break
+      }
+      prevPwpSum = pwpSum
+      prevPwpSumDiff = pwpSumDiff
+    }
+
     pots, origin = step(pots, origin, plantPatternRules)
   }
-
-  sumNumbers := 0
-  for i, pot := range pots {
-    if pot == '#' {
-      sumNumbers += i + origin
-    }
-  }
-  fmt.Println("The total sum of the pots-with-plants numbers is:", sumNumbers)
 }
