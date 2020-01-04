@@ -8,12 +8,13 @@ import (
 	"strings"
 )
 
+var MAX_TICK = 1000000
+
 type Cart struct {
 	direction         rune
 	turnOptionCounter int
 	stepped           bool
-	startX            int
-	startY            int
+	crashed           bool
 }
 
 func check(err error) {
@@ -26,6 +27,15 @@ func resetCartSteps(carts []*Cart) {
 	for _, cart := range carts {
 		cart.stepped = false
 	}
+}
+
+func numCartsLeft(carts []*Cart) (cartsLeft int) {
+	for _, cart := range carts {
+		if !cart.crashed {
+			cartsLeft++
+		}
+	}
+	return cartsLeft
 }
 
 func getCartsAndTurns(reader io.Reader) (carts []*Cart, cartMap [][]*Cart, trackMap [][]rune) {
@@ -43,7 +53,7 @@ func getCartsAndTurns(reader io.Reader) (carts []*Cart, cartMap [][]*Cart, track
 			if state == ' ' {
 				continue
 			} else if strings.ContainsRune(directions, state) {
-				newCart := Cart{state, 0, false, x, y}
+				newCart := Cart{state, 0, false, false}
 				carts = append(carts, &newCart)
 				currentRowCarts[x] = &newCart
 			} else if strings.ContainsRune(turns, state) {
@@ -59,7 +69,7 @@ func getCartsAndTurns(reader io.Reader) (carts []*Cart, cartMap [][]*Cart, track
 	return carts, cartMap, trackMap
 }
 
-func getNextCoordinate(direction rune, x int, y int, cart *Cart) (int, int) {
+func getNextCoordinate(direction rune, x int, y int) (int, int) {
 	if direction == '>' {
 		return x + 1, y
 	} else if direction == '<' {
@@ -123,25 +133,62 @@ func (cart *Cart) checkAndSetCartDirection(turn rune) {
 	}
 }
 
-func stepAndCheckCrash(cartMap [][]*Cart, trackMap [][]rune) bool {
-	for y, currentRowCarts := range cartMap {
-		for x, cart := range currentRowCarts {
-			if cart == nil || cart.stepped {
-				continue
+func getFirstCrash(carts []*Cart, cartMap [][]*Cart, trackMap [][]rune) (int, int, int) {
+	for tick := 0; tick < MAX_TICK; tick++ {
+		resetCartSteps(carts)
+		for y, currentRowCarts := range cartMap {
+			for x, cart := range currentRowCarts {
+				if cart == nil || cart.stepped {
+					continue
+				}
+				// advance the cart along its direction
+				nextX, nextY := getNextCoordinate(cart.direction, x, y)
+				if cartMap[nextY][nextX] != nil {
+					// cart crash
+					return tick, nextX, nextY
+				}
+				cartMap[y][x] = nil
+				cartMap[nextY][nextX] = cart
+				cart.checkAndSetCartDirection(trackMap[nextY][nextX])
+				cart.stepped = true
 			}
-			// advance the cart along its direction
-			nextX, nextY := getNextCoordinate(cart.direction, x, y, cart)
-			if cartMap[nextY][nextX] != nil {
-				fmt.Printf("Crash at x=%d, y=%d\n", nextX, nextY)
-				return true
-			}
-			cartMap[y][x] = nil
-			cartMap[nextY][nextX] = cart
-			cart.checkAndSetCartDirection(trackMap[nextY][nextX])
-			cart.stepped = true
 		}
 	}
-	return false
+	panic("Unable to get first crash")
+}
+
+func getLastCart(carts []*Cart, cartMap [][]*Cart, trackMap [][]rune) (int, int, int) {
+	for tick := 0; tick < MAX_TICK; tick++ {
+		resetCartSteps(carts)
+		var lastCartX, lastCartY int
+		for y, currentRowCarts := range cartMap {
+			for x, cart := range currentRowCarts {
+				if cart == nil || cart.stepped {
+					continue
+				}
+				// advance the cart along its direction
+				nextX, nextY := getNextCoordinate(cart.direction, x, y)
+				if cartMap[nextY][nextX] != nil {
+					// cart crash
+					cart.crashed = true
+					cartMap[nextY][nextX].crashed = true
+					cartMap[y][x] = nil
+					cartMap[nextY][nextX] = nil
+					continue
+				}
+				cartMap[y][x] = nil
+				cartMap[nextY][nextX] = cart
+				cart.checkAndSetCartDirection(trackMap[nextY][nextX])
+				cart.stepped = true
+				// Set metadata for simulation termination
+				lastCartX, lastCartY = nextX, nextY
+			}
+		}
+		if numCartsLeft(carts) == 1 {
+			return tick, lastCartX, lastCartY
+		}
+	}
+	panic("Unable to get last cart")
 }
 
 func main() {
@@ -149,9 +196,16 @@ func main() {
 	check(err)
 	carts, cartMap, trackMap := getCartsAndTurns(io.Reader(fd))
 
-	var tick int
-	for tick = 0; !stepAndCheckCrash(cartMap, trackMap); tick++ {
-		resetCartSteps(carts)
-	}
-	fmt.Printf("Crashed on tick %d\n", tick+1)
+	var tick, x, y int
+
+	tick, x, y = getFirstCrash(carts, cartMap, trackMap)
+	fmt.Printf("First crash at tick=%d, x=%d, y=%d\n", tick+1, x, y)
+
+	// reload the input data
+	_, err = fd.Seek(0, 0)
+	check(err)
+	carts, cartMap, trackMap = getCartsAndTurns(io.Reader(fd))
+
+	tick, x, y = getLastCart(carts, cartMap, trackMap)
+	fmt.Printf("Last cart at tick=%d, x=%d, y=%d\n", tick+1, x, y)
 }
