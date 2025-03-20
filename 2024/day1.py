@@ -1,4 +1,4 @@
-with open('day1.txt') as f:
+with open("day1.txt") as f:
     l1, l2 = [], []
     for line in f.readlines():
         l1_i, l2_i = line.split()
