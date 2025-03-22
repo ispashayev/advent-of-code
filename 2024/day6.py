@@ -89,9 +89,6 @@ print("Part 1:", len(walk_result.positions_visited))
 
 # Part 2
 
-i, j = start_coordinates
-heading = start_heading
-
 obstacle_position_results: dict[tuple[int, int], bool] = {}
 
 for position in walk_result.positions_visited:
