@@ -23,14 +23,16 @@ for i in range(n):
 
 
 def compute_antinodes(
-    c1: tuple[int, int], c2: tuple[int, int], resonant_harmonics: bool
+    c1: tuple[int, int], c2: tuple[int, int]
 ) -> list[tuple[int, int]]:
     i1, j1 = c1
     i2, j2 = c2
 
-    col_distance = j1 - j2
-    row_distance = i1 - i2
+    # Components of a transition vector from c2 to c1
+    col_distance, row_distance = j1 - j2, i1 - i2
 
+    # To get c2's antinode, apply the computed transition vector to c1.
+    # To get c1's antinode, apply the negated transition vector to c2.
     antinode_candidates: list[tuple[int, int]] = [
         (i1 + row_distance, j1 + col_distance),
         (i2 - row_distance, j2 - col_distance),
@@ -43,7 +45,7 @@ antinode_locations: set[tuple[int, int]] = set()
 
 for antenna, locations in antenna_location_groups.items():
     for c1, c2 in combinations(iterable=locations, r=2):
-        antinodes = compute_antinodes(c1=c1, c2=c2, resonant_harmonics=False)
+        antinodes = compute_antinodes(c1=c1, c2=c2)
         antinode_locations.update(antinodes)
 
 print("Part 1:", len(antinode_locations))
@@ -58,8 +60,7 @@ def compute_resonant_antinodes(
     i1, j1 = c1
     i2, j2 = c2
 
-    col_distance = j1 - j2
-    row_distance = i1 - i2
+    col_distance, row_distance = j1 - j2, i1 - i2
 
     resonant_antinodes: list[tuple[int, int]] = []
 
